@@ -1,7 +1,14 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
-import { isSafeURL } from "../middleware/ssrfGuard";
-import { is } from "zod/locales";
+import { isSafeURL } from '../middleware/ssrfGuard';
+import { fetchHtml } from '../engine/fetcher';
+import { parsePage } from '../engine/parser';
+import { detectTableLayout } from '../engine/rules/tableLayout';
+import { detectInlineStyles } from '../engine/rules/inlineStyles';
+import { detectSemanticGaps } from '../engine/rules/semantic';
+import { detectAccessibilityIssues } from '../engine/rules/accessibility';
+import { detectComponents } from '../engine/rules/components';
+import { computeScore } from '../engine/scorer';
 
 export const analyzeRoute = Router();
 
@@ -16,46 +23,70 @@ const analyzeRequestSchema = z.object({
     }),
 });
 
-analyzeRoute.post("/analyze", async (req: Request, res: Response) => {
+
+
+analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
+  // ── 1. Validate input ─────────────────────────────────────────────────────
   const result = analyzeRequestSchema.safeParse(req.body);
-
-  console.log(result);
-
   if (!result.success) {
     return res.status(400).json({
       ok: false,
-      error: {
-        code: "VALIDATION_ERROR",
-        message: result.error.format(),
-      },
+      error: { code: 'VALIDATION_ERROR', message: result.error.format() },
     });
   }
 
   const { url } = result.data;
 
-  // SSRF protection
+  // ── 2. SSRF guard ─────────────────────────────────────────────────────────
   if (!isSafeURL(url)) {
     return res.status(403).json({
       ok: false,
-      error: {
-        code: "FORBIDDEN_URL",
-        message: "Internal and private URLs are not allowed.",
-      },
+      error: { code: 'FORBIDDEN_URL', message: 'Internal and private URLs are not allowed.' },
     });
   }
 
-  // Phase 1 placeholder — returns mock data for now
+  // ── 3. Fetch HTML ─────────────────────────────────────────────────────────
+  let html: string;
+  try {
+    const fetched = await fetchHtml(url);
+    html = fetched.html;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch URL';
+    return res.status(422).json({
+      ok: false,
+      error: { code: 'FETCH_ERROR', message },
+    });
+  }
+
+  // ── 4. Parse ──────────────────────────────────────────────────────────────
+  const $ = parsePage(html);
+
+  // ── 5. Run rule engine ────────────────────────────────────────────────────
+  const findings = [
+    ...detectTableLayout($),
+    ...detectInlineStyles($),
+    ...detectSemanticGaps($),
+    ...detectAccessibilityIssues($),
+  ];
+
+  // ── 6. Detect components ──────────────────────────────────────────────────
+  const components = detectComponents($);
+
+  // ── 7. Score ──────────────────────────────────────────────────────────────
+  const score = computeScore(findings);
+
+  // ── 8. Return (AI plan wired in Phase 3) ─────────────────────────────────
   return res.json({
     ok: true,
     data: {
-      score: 42,
       url,
-      issues: ["Placeholder — rule engine not wired yet"],
-      components: ["Navbar", "Footer"],
+      score,
+      findings,
+      components,
       aiPlan: {
-        summary: "Placeholder — AI layer not wired yet",
-        steps: ["Step 1 placeholder", "Step 2 placeholder"],
-        recommendedStack: ["React", "Tailwind", "Vite"],
+        summary: 'AI plan coming in Phase 3',
+        steps: [],
+        recommendedStack: ['React', 'Tailwind', 'Vite'],
       },
     },
   });
