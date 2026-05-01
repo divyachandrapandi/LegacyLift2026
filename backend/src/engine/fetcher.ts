@@ -7,6 +7,22 @@ const TIMEOUT_MS = 10_000;
 const USER_AGENT =
   'Mozilla/5.0 (compatible; LegacyLift/1.0; +https://legacylift.dev)';
 
+/**
+ * Fetches raw HTML from a target URL for the LegacyLift analysis pipeline.
+ *
+ * Description:
+ * - Retrieves server-rendered HTML with timeout, redirect support, and browser-like headers.
+ * - Exists so the rule engine always receives consistent HTML input before parsing.
+ *
+ * Example input:
+ * - `"https://example.com"`
+ *
+ * Example output:
+ * - `{ html: "<!doctype html>...", finalUrl: "https://example.com", statusCode: 200 }`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` before `parsePage()` during `/api/analyze`.
+ */
 export async function fetchHtml(url: string): Promise<FetchResult> {
   try {
     const response = await axios.get(url, {

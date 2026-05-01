@@ -1,5 +1,21 @@
 import { Finding, ParsedPage } from '../../types';
 
+/**
+ * Detects table-based layout usage that should be modernized.
+ *
+ * Description:
+ * - Flags likely non-data tables used for page layout.
+ * - Exists to highlight legacy structure patterns common in older websites.
+ *
+ * Example input:
+ * - Parsed page containing `<table><tr><td><div>Page layout</div></td></tr></table>`.
+ *
+ * Example output:
+ * - `[{ id: "table-layout", severity: "critical", count: 1, evidence: ["<table>..."] }]`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` as part of the rule engine findings pipeline.
+ */
 export function detectTableLayout($: ParsedPage): Finding[] {
   const findings: Finding[] = [];
   const evidence: string[] = [];

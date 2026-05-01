@@ -12,6 +12,23 @@ const BLOCKED_PATTERNS = [
   /^https?:\/\/::1/, // IPv6 loopback
 ];
 
+/**
+ * Validates that a submitted URL is safe for server-side fetching.
+ *
+ * Description:
+ * - Blocks localhost, loopback, link-local, and private network targets.
+ * - Exists to reduce SSRF risk in LegacyLift's URL-analysis endpoint.
+ *
+ * Example input:
+ * - `"https://example.com"` -> `true`
+ * - `"http://localhost:3000"` -> `false`
+ *
+ * Example output:
+ * - `boolean`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` before calling `fetchHtml()`.
+ */
 export const isSafeURL = (url: string): boolean => {
   // Basic URL format validation
   return !BLOCKED_PATTERNS.some((pattern) => pattern.test(url));

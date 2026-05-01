@@ -1,5 +1,21 @@
 import { DetectedComponent, ParsedPage } from '../../types';
 
+/**
+ * Heuristically detects common UI component patterns from legacy markup.
+ *
+ * Description:
+ * - Infers components like Navbar, Hero, Card, Form, and Footer from tags/classes/ids.
+ * - Exists to help the AI layer suggest a practical React component migration plan.
+ *
+ * Example input:
+ * - Parsed page with `<nav>...</nav>` and `<section class="hero">...</section>`.
+ *
+ * Example output:
+ * - `["Navbar", "Hero", "Form"]`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` after issue detection and before response assembly.
+ */
 export function detectComponents($: ParsedPage): DetectedComponent[] {
   const detected = new Set<DetectedComponent>();
 

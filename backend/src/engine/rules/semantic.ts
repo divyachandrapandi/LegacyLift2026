@@ -3,6 +3,22 @@ import { Finding, ParsedPage } from '../../types';
 // Semantic landmarks every modern page should have
 const SEMANTIC_TAGS = ['header', 'nav', 'main', 'footer', 'article', 'section'] as const;
 
+/**
+ * Detects semantic HTML gaps and overly div-based layout structure.
+ *
+ * Description:
+ * - Reports missing landmarks and warns when structure is mostly non-semantic `<div>` tags.
+ * - Exists to guide migration toward accessible, maintainable React markup.
+ *
+ * Example input:
+ * - Parsed page with many `<div>` elements and no `<main>`/`<footer>`.
+ *
+ * Example output:
+ * - `[{ id: "missing-semantic-tags", count: 3, ... }, { id: "div-heavy-layout", ... }]`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` in the rule engine sequence.
+ */
 export function detectSemanticGaps($: ParsedPage): Finding[] {
   const findings: Finding[] = [];
   const missing: string[] = [];

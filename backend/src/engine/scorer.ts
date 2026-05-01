@@ -10,6 +10,22 @@ const SEVERITY_WEIGHTS: Record<string, number> = {
 // Max deduction per individual rule — stops one rule from tanking the score alone
 const MAX_DEDUCTION_PER_RULE = 20;
 
+/**
+ * Computes the modernization score from deterministic findings.
+ *
+ * Description:
+ * - Applies severity-weighted deductions and returns a bounded 0-100 score.
+ * - Exists to convert raw issue findings into a recruiter-friendly summary metric.
+ *
+ * Example input:
+ * - `[{ id: "missing-semantic-tags", severity: "critical", count: 4, ... }]`
+ *
+ * Example output:
+ * - `62`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` to build the final API report payload.
+ */
 export function computeScore(findings: Finding[]): number {
   let totalDeduction = 0;
 

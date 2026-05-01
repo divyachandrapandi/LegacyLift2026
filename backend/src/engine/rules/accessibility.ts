@@ -1,5 +1,21 @@
 import { Finding, ParsedPage} from '../../types';
 
+/**
+ * Detects high-impact accessibility issues in legacy HTML.
+ *
+ * Description:
+ * - Checks for missing image alt text, unlabeled form inputs, and missing `lang` on `<html>`.
+ * - Exists to surface practical WCAG-related migration priorities early.
+ *
+ * Example input:
+ * - Parsed page with `<img src="/hero.jpg">` and `<input type="text">` without labels.
+ *
+ * Example output:
+ * - `[{ id: "img-missing-alt", ... }, { id: "input-missing-label", ... }]`
+ *
+ * Usage in project:
+ * - Used by `backend/src/routes/analyze.ts` to enrich the findings list.
+ */
 export function detectAccessibilityIssues($: ParsedPage): Finding[] {
   const findings: Finding[] = [];
 
