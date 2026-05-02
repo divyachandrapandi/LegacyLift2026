@@ -84,7 +84,11 @@ const DEFAULT_PLAN: AiPlan = {
  * Usage in project:
  * - Called only by `generatePlan` in this module.
  */
-function buildPrompt(findings: Finding[], components: DetectedComponent[]): string {
+function buildPrompt(
+  findings: Finding[],
+  components: DetectedComponent[],
+  currentStack: string[]
+): string {
   return `You are a web modernization expert helping developers migrate legacy websites to modern React-based architecture.
 
 Analyze the following findings from a legacy website audit:
@@ -95,6 +99,9 @@ ${JSON.stringify(findings, null, 2)}
 Detected Components:
 ${JSON.stringify(components, null, 2)}
 
+Current Stack Already In Use (do not re-recommend these as new adoptions):
+${JSON.stringify(currentStack, null, 2)}
+
 Respond with ONLY valid JSON in this exact shape — no markdown, no explanation, no code fences:
 {
   "summary": "2-3 sentence overview of the site's modernization needs",
@@ -103,8 +110,13 @@ Respond with ONLY valid JSON in this exact shape — no markdown, no explanation
     "Step 2: ...",
     "Step 3: ..."
   ],
-  "recommendedStack": ["React", "TypeScript", "Tailwind CSS", "Vite"]
+  "recommendedStack": ["Only technologies that are missing or should be newly added"]
 }
+
+Rules:
+- Do NOT recommend tools already present in "Current Stack Already In Use".
+- Prefer upgrade/refactor steps over stack re-adoption when the stack already exists.
+- Keep recommendations specific to the provided findings.
 
 Include 4-7 concrete, ordered migration steps. Output only the JSON object.`;
 }
@@ -134,9 +146,14 @@ Include 4-7 concrete, ordered migration steps. Output only the JSON object.`;
 export async function generatePlan(
   url: string,
   findings: Finding[],
-  components: DetectedComponent[]
+  components: DetectedComponent[],
+  currentStack: string[] = []
 ): Promise<AiPlan> {
-  const cacheKey = crypto.createHash('sha256').update(url).digest('hex');
+  const normalizedStack = [...new Set(currentStack.map((s) => s.trim()).filter(Boolean))];
+  const cacheKey = crypto
+    .createHash('sha256')
+    .update(JSON.stringify({ url, currentStack: normalizedStack }))
+    .digest('hex');
 
   const cached = planCache.get(cacheKey);
   if (cached) {
@@ -145,7 +162,7 @@ export async function generatePlan(
   }
 
   console.log(
-    `[ai] generating plan for ${url} — ${findings.length} finding(s), components: ${components.join(', ') || 'none'}`
+    `[ai] generating plan for ${url} — ${findings.length} finding(s), components: ${components.join(', ') || 'none'}, currentStack: ${normalizedStack.join(', ') || 'none'}`
   );
 
   try {
@@ -154,7 +171,9 @@ export async function generatePlan(
         const response = await client.chat.completions.create({
           model,
           max_tokens: 1024,
-          messages: [{ role: 'user', content: buildPrompt(findings, components) }],
+          messages: [
+            { role: 'user', content: buildPrompt(findings, components, normalizedStack) },
+          ],
         });
 
         const text = response.choices[0]?.message?.content ?? '';
@@ -169,9 +188,21 @@ export async function generatePlan(
           return DEFAULT_PLAN;
         }
 
-        planCache.set(cacheKey, parsed.data);
+        const filteredRecommendedStack = parsed.data.recommendedStack.filter(
+          (item) =>
+            !normalizedStack.some(
+              (existing) => existing.toLowerCase() === item.trim().toLowerCase()
+            )
+        );
+
+        const plan: AiPlan = {
+          ...parsed.data,
+          recommendedStack: filteredRecommendedStack,
+        };
+
+        planCache.set(cacheKey, plan);
         console.log(`[ai] plan cached for ${url} using model ${model}`);
-        return parsed.data;
+        return plan;
       } catch (modelErr) {
         if (isModelAccessError(modelErr)) {
           console.warn(`[ai] model ${model} not accessible for this project key, trying next fallback`);

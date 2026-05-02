@@ -49,6 +49,8 @@ export interface Report {
   score: number;
   findings: Finding[];
   components: DetectedComponent[];
+  currentStack?: string[];
+  detectedStack?: string[];
   aiPlan: AiPlan;
 }
 

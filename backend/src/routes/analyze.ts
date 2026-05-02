@@ -8,6 +8,7 @@ import { detectInlineStyles } from '../engine/rules/inlineStyles';
 import { detectSemanticGaps } from '../engine/rules/semantic';
 import { detectAccessibilityIssues } from '../engine/rules/accessibility';
 import { detectComponents } from '../engine/rules/components';
+import { detectFrameworkSignals } from '../engine/rules/frameworkSignals';
 import { computeScore } from '../engine/scorer';
 import { generatePlan } from '../engine/ai';
 
@@ -38,6 +39,7 @@ const analyzeRequestSchema = z.object({
     .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
       message: "Only HTTP(s) protocol allowed",
     }),
+  currentStack: z.array(z.string().trim().min(1)).optional().default([]),
 });
 
 /**
@@ -49,7 +51,7 @@ const analyzeRequestSchema = z.object({
  * - Exists as the core backend entry point that powers frontend report rendering.
  *
  * Example input:
- * - Request body: `{ "url": "https://example.com" }`
+ * - Request body: `{ "url": "https://example.com", "currentStack": ["React", "TypeScript", "Vite"] }`
  *
  * Example output / response:
  * - Success (200):
@@ -63,7 +65,7 @@ const analyzeRequestSchema = z.object({
  * REST API details:
  * - Method: `POST`
  * - Path: `/api/analyze`
- * - Request body: `{ "url": "https://example.com" }`
+ * - Request body: `{ "url": "https://example.com", "currentStack": ["React", "TypeScript", "Vite"] }`
  * - Success response: `{ ok: true, data: { url, score, findings, components, aiPlan } }`
  * - Error response: `{ ok: false, error: { code, message } }`
  */
@@ -77,7 +79,7 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
     });
   }
 
-  const { url } = result.data;
+  const { url, currentStack } = result.data;
 
   // ── 2. SSRF guard ─────────────────────────────────────────────────────────
   if (!isSafeURL(url)) {
@@ -114,11 +116,17 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
   // ── 6. Detect components ──────────────────────────────────────────────────
   const components = detectComponents($);
 
+  // ── 6.5 Detect framework/tooling signals ──────────────────────────────────
+  const detectedStack = detectFrameworkSignals($);
+  const effectiveCurrentStack = Array.from(
+    new Set([...currentStack, ...detectedStack].map((s) => s.trim()).filter(Boolean))
+  );
+
   // ── 7. Score ──────────────────────────────────────────────────────────────
   const score = computeScore(findings);
 
   // ── 8. Generate AI modernization plan ────────────────────────────────────
-  const aiPlan = await generatePlan(url, findings, components);
+  const aiPlan = await generatePlan(url, findings, components, effectiveCurrentStack);
 
   return res.json({
     ok: true,
@@ -127,6 +135,8 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
       score,
       findings,
       components,
+      currentStack: effectiveCurrentStack,
+      detectedStack,
       aiPlan,
     },
   });
