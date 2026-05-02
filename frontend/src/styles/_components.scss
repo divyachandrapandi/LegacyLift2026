@@ -512,3 +512,18 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+// ── GitHub footer link ────────────────────────────────────────────────────────
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  color: var(--text-muted);
+  font-size: $font-xs;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
