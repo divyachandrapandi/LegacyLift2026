@@ -9,6 +9,7 @@ import { detectSemanticGaps } from '../engine/rules/semantic';
 import { detectAccessibilityIssues } from '../engine/rules/accessibility';
 import { detectComponents } from '../engine/rules/components';
 import { computeScore } from '../engine/scorer';
+import { generatePlan } from '../engine/ai';
 
 export const analyzeRoute = Router();
 
@@ -116,7 +117,9 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
   // ── 7. Score ──────────────────────────────────────────────────────────────
   const score = computeScore(findings);
 
-  // ── 8. Return (AI plan wired in Phase 3) ─────────────────────────────────
+  // ── 8. Generate AI modernization plan ────────────────────────────────────
+  const aiPlan = await generatePlan(url, findings, components);
+
   return res.json({
     ok: true,
     data: {
@@ -124,11 +127,7 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
       score,
       findings,
       components,
-      aiPlan: {
-        summary: 'AI plan coming in Phase 3',
-        steps: [],
-        recommendedStack: ['React', 'Tailwind', 'Vite'],
-      },
+      aiPlan,
     },
   });
 });

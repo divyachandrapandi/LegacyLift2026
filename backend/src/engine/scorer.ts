@@ -31,6 +31,8 @@ export function computeScore(findings: Finding[]): number {
 
   for (const finding of findings) {
     const weight = SEVERITY_WEIGHTS[finding.severity] ?? 0;
+    console.log(weight);
+    
     // Scale deduction by count but cap it
     const deduction = Math.min(weight * Math.ceil(finding.count / 2), MAX_DEDUCTION_PER_RULE);
     totalDeduction += deduction;
