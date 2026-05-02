@@ -69,16 +69,67 @@ Paste any public URL → get a modernization score, grouped issue findings, dete
 
 ---
 
-## Scoring
+## Scoring Methodology
 
-Score = 100 − weighted deductions (0–100 scale)
+The score is a **deterministic, weighted deduction model** — not a heuristic or AI guess. Every point deducted is traceable to a specific rule finding in the HTML.
 
-| Category | Multiplier | Reason |
-|----------|-----------|--------|
-| Security | ×1.5 | Direct user/business risk |
-| Framework | ×1.3 | EOL dependencies |
-| Mobile | ×1.3 | Google mobile-first indexing |
-| Others | ×1.0 | Standard weight |
+### Formula
+
+```
+score = max(0, round(100 − Σ deductions))
+
+per_rule_deduction = min(
+  base_severity_weight × category_multiplier × ceil(instance_count / 2),
+  20   ← hard cap per rule, so one bad rule can't tank the entire score
+)
+```
+
+### Step 1 — Severity base weight
+
+Each finding starts with a base weight based on how severe the issue is:
+
+| Severity | Base Weight | Meaning |
+|----------|------------|---------|
+| Critical | 15 pts | Breaks functionality, security risk, or major UX failure |
+| Warning  | 7 pts  | Degrades quality, SEO, or performance noticeably |
+| Info     | 2 pts  | Best-practice gap, low immediate impact |
+
+### Step 2 — Category multiplier
+
+Not all categories carry the same business risk. High-liability categories are weighted up:
+
+| Category | Multiplier | Rationale |
+|----------|-----------|-----------|
+| Security | ×1.5 | Mixed content and tabnapping expose users directly |
+| Framework | ×1.3 | EOL libraries (jQuery 1.x) have known CVEs, no patches |
+| Mobile | ×1.3 | Google mobile-first indexing penalises non-responsive sites |
+| SEO | ×1.0 | Affects visibility but doesn't break functionality |
+| Performance | ×1.0 | Degrades UX, factored through instance count |
+| Layout, Styling, Semantics, Accessibility, Deprecated HTML | ×1.0 | Standard weight |
+
+### Step 3 — Instance scaling + per-rule cap
+
+A rule that finds 1 instance is less severe than one that finds 20. The formula scales by `ceil(count / 2)` — every 2 instances counts as one additional unit of deduction. A **hard cap of 20 pts per rule** prevents a single prolific issue (e.g. 200 inline-styled elements) from zeroing the score unfairly.
+
+### Worked example
+
+> Site has: 3 mixed-content assets (security/critical), 1 missing viewport (mobile/critical), 12 inline styles (styling/warning)
+
+| Rule | Base | Multiplier | Count factor | Raw | Capped |
+|------|------|-----------|--------------|-----|--------|
+| Mixed content | 15 | ×1.5 | ceil(3/2)=2 | 45 | **20** |
+| No viewport | 15 | ×1.3 | ceil(1/2)=1 | 19.5 | **19.5** |
+| Inline styles | 7 | ×1.0 | ceil(12/2)=6 | 42 | **20** |
+| **Total deduction** | | | | | **59.5** |
+| **Score** | | | | | **100 − 59.5 = 41 → "Needs Work"** |
+
+### Score bands
+
+| Score | Label | Meaning |
+|-------|-------|---------|
+| 70–100 | Modern | Minimal legacy debt, close to current standards |
+| 40–69 | Needs Work | Notable issues that affect users or maintainability |
+| 0–39 | High Risk | Significant technical debt, security or mobile liability |
 
 ---
 
