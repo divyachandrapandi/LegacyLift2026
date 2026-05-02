@@ -89,36 +89,45 @@ function buildPrompt(
   components: DetectedComponent[],
   currentStack: string[]
 ): string {
-  return `You are a web modernization expert helping developers migrate legacy websites to modern React-based architecture.
+  // Format findings with evidence snippets so the AI sees real HTML, not just counts
+  const findingLines = findings
+    .map((f) => {
+      const evidenceBlock =
+        f.evidence.length > 0
+          ? `\n    Evidence: ${f.evidence.slice(0, 2).join(' | ')}`
+          : '';
+      return `- [${f.severity.toUpperCase()}] ${f.category}: ${f.message}${evidenceBlock}`;
+    })
+    .join('\n');
 
-Analyze the following findings from a legacy website audit:
+  return `You are a web modernization expert. A legacy website has been audited. Your job is to produce a specific, actionable modernization plan based on the exact findings below — not generic advice.
 
-Findings:
-${JSON.stringify(findings, null, 2)}
+## Findings (${findings.length} total)
+${findingLines}
 
-Detected Components:
-${JSON.stringify(components, null, 2)}
+## Detected UI Components
+${components.length > 0 ? components.join(', ') : 'None detected'}
 
-Current Stack Already In Use (do not re-recommend these as new adoptions):
-${JSON.stringify(currentStack, null, 2)}
+## Current Stack Already In Use
+${currentStack.length > 0 ? currentStack.join(', ') : 'Unknown'}
 
-Respond with ONLY valid JSON in this exact shape — no markdown, no explanation, no code fences:
+## Instructions
+- Write steps that directly address the findings above — reference the specific issues found (e.g. "Replace jQuery 1.x with native fetch/axios", not "Modernize JavaScript").
+- Order steps by priority: security and liability issues first, then structural, then quality.
+- Do NOT recommend tools already in "Current Stack Already In Use".
+- Keep each step to one concrete action a developer can start immediately.
+
+Respond with ONLY valid JSON — no markdown, no explanation, no code fences:
 {
-  "summary": "2-3 sentence overview of the site's modernization needs",
+  "summary": "2-3 sentences describing THIS site's specific technical debt and risk",
   "steps": [
     "Step 1: ...",
-    "Step 2: ...",
-    "Step 3: ..."
+    "Step 2: ..."
   ],
-  "recommendedStack": ["Only technologies that are missing or should be newly added"]
+  "recommendedStack": ["Only tools not already in the current stack"]
 }
 
-Rules:
-- Do NOT recommend tools already present in "Current Stack Already In Use".
-- Prefer upgrade/refactor steps over stack re-adoption when the stack already exists.
-- Keep recommendations specific to the provided findings.
-
-Include 4-7 concrete, ordered migration steps. Output only the JSON object.`;
+Include 4-7 steps. Output only the JSON object.`;
 }
 
 /**

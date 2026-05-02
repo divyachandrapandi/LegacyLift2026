@@ -9,6 +9,12 @@ import { detectSemanticGaps } from '../engine/rules/semantic';
 import { detectAccessibilityIssues } from '../engine/rules/accessibility';
 import { detectComponents } from '../engine/rules/components';
 import { detectFrameworkSignals } from '../engine/rules/frameworkSignals';
+import { detectLegacyFramework } from '../engine/rules/legacyFramework';
+import { detectMobileReadiness } from '../engine/rules/mobileReadiness';
+import { detectSeoHealth } from '../engine/rules/seoHealth';
+import { detectPerformanceRisk } from '../engine/rules/performanceRisk';
+import { detectSecurityRisk } from '../engine/rules/securityRisk';
+import { detectDeprecatedHtml } from '../engine/rules/deprecatedHtml';
 import { computeScore } from '../engine/scorer';
 import { generatePlan } from '../engine/ai';
 
@@ -107,10 +113,21 @@ analyzeRoute.post('/analyze', async (req: Request, res: Response) => {
 
   // ── 5. Run rule engine ────────────────────────────────────────────────────
   const findings = [
+    // Structural / semantic
     ...detectTableLayout($),
-    ...detectInlineStyles($),
     ...detectSemanticGaps($),
+    ...detectDeprecatedHtml($),
+    // Styling
+    ...detectInlineStyles($),
+    // Accessibility
     ...detectAccessibilityIssues($),
+    // Liability rules (weighted higher in scorer)
+    ...detectLegacyFramework($),
+    ...detectMobileReadiness($),
+    ...detectSecurityRisk($),
+    // Quality signals
+    ...detectSeoHealth($),
+    ...detectPerformanceRisk($),
   ];
 
   // ── 6. Detect components ──────────────────────────────────────────────────

@@ -7,7 +7,13 @@ export type FindingCategory =
   | "styling"
   | "semantics"
   | "accessibility"
-  | "components";
+  | "components"
+  | "framework"
+  | "mobile"
+  | "seo"
+  | "performance"
+  | "security"
+  | "deprecated-html";
 
 export interface Finding {
   id: string; // unique rule id e.g. "table-layout"
