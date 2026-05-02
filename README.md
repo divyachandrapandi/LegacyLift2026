@@ -26,6 +26,8 @@ Paste any public URL → get a modernization score, grouped issue findings, dete
 
 **Core principle:** *Rules find facts. AI explains and plans.*
 
+![LegacyLift workflow](./workflow-detailed.png)
+
 ---
 
 ## Tech Stack
