@@ -1,0 +1,96 @@
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+// All values follow a 4px grid. Edit here; everything inherits automatically.
+
+// Colors exposed as CSS custom properties so Tailwind arbitrary values can use them
+:root {
+  // Backgrounds
+  --bg-base:      #030712;
+  --bg-card:      #111827;
+  --bg-elevated:  #1f2937;
+
+  // Borders
+  --border:       #374151;
+  --border-subtle:#1f2937;
+
+  // Text
+  --text-primary: #f9fafb;
+  --text-secondary:#e5e7eb;
+  --text-muted:   #9ca3af;
+  --text-faint:   #6b7280;
+
+  // Accent (indigo)
+  --accent:       #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-light: #818cf8;
+  --accent-muted: rgba(99, 102, 241, 0.15);
+
+  // Severity
+  --critical:       #ef4444;
+  --critical-muted: rgba(239, 68, 68, 0.12);
+  --warning:        #f59e0b;
+  --warning-muted:  rgba(245, 158, 11, 0.12);
+  --info:           #38bdf8;
+  --info-muted:     rgba(56, 189, 248, 0.12);
+
+  // Score ring
+  --score-good:   #22c55e;
+  --score-medium: #f59e0b;
+  --score-bad:    #ef4444;
+
+  // Component chip colors
+  --chip-component: #6366f1;
+  --chip-stack:     #0d9488;
+  --chip-stack-bg:  rgba(13, 148, 136, 0.15);
+  --chip-violet:    #7c3aed;
+  --chip-violet-bg: rgba(124, 58, 237, 0.15);
+
+  // Shadows
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-lg:    0 10px 40px rgba(0,0,0,0.5);
+  --shadow-glow:  0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+// ─── SCSS Variables (spacing, breakpoints, radius) ────────────────────────────
+
+// 4px grid spacing scale
+$space-1:   4px;
+$space-2:   8px;
+$space-3:  12px;
+$space-4:  16px;
+$space-5:  20px;
+$space-6:  24px;
+$space-8:  32px;
+$space-10: 40px;
+$space-12: 48px;
+$space-16: 64px;
+$space-20: 80px;
+$space-24: 96px;
+
+// Breakpoints
+$bp-sm:  480px;
+$bp-md:  768px;
+$bp-lg:  1024px;
+$bp-xl:  1280px;
+
+// Border radius
+$radius-sm:   6px;
+$radius-md:  12px;
+$radius-lg:  20px;
+$radius-xl:  28px;
+$radius-full: 9999px;
+
+// Typography scale
+$font-xs:   12px;
+$font-sm:   14px;
+$font-base: 16px;
+$font-lg:   18px;
+$font-xl:   20px;
+$font-2xl:  24px;
+$font-3xl:  30px;
+$font-4xl:  36px;
+$font-5xl:  48px;
+
+// Z-index
+$z-base:    1;
+$z-overlay: 10;
+$z-modal:   100;

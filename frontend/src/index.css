@@ -1,1 +1,2 @@
+/* Tailwind v4 — must live in a plain .css file to avoid Sass @import deprecation warning */
 @import "tailwindcss";

@@ -1,0 +1,112 @@
+// ─── Responsive mixins & layout helpers ───────────────────────────────────────
+// Use these mixins instead of raw media queries for consistency.
+// All breakpoints match the $bp-* tokens in _variables.scss.
+
+@use 'variables' as *;
+
+// ── Mixins ────────────────────────────────────────────────────────────────────
+
+@mixin sm-up  { @media (min-width: $bp-sm)  { @content; } }
+@mixin md-up  { @media (min-width: $bp-md)  { @content; } }
+@mixin lg-up  { @media (min-width: $bp-lg)  { @content; } }
+@mixin xl-up  { @media (min-width: $bp-xl)  { @content; } }
+
+@mixin sm-down  { @media (max-width: #{$bp-sm - 1px})  { @content; } }
+@mixin md-down  { @media (max-width: #{$bp-md - 1px})  { @content; } }
+@mixin lg-down  { @media (max-width: #{$bp-lg - 1px})  { @content; } }
+
+// ── Page layout ───────────────────────────────────────────────────────────────
+
+.page-wrapper {
+  min-height: 100vh;
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+.content-container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 $space-4;
+
+  @include md-up {
+    padding: 0 $space-6;
+  }
+
+  @include lg-up {
+    padding: 0 $space-8;
+  }
+}
+
+// ── Hero section ──────────────────────────────────────────────────────────────
+
+.hero {
+  padding: $space-16 $space-4 $space-8;
+  text-align: center;
+
+  @include md-up {
+    padding: $space-20 $space-6 $space-10;
+  }
+
+  &__title {
+    font-size: $font-3xl;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: $space-3;
+
+    @include md-up { font-size: $font-4xl; }
+    @include lg-up { font-size: $font-5xl; }
+  }
+
+  &__tagline {
+    font-size: $font-base;
+    color: var(--text-muted);
+    max-width: 480px;
+    margin: 0 auto $space-8;
+
+    @include md-up { font-size: $font-lg; }
+  }
+}
+
+// ── Report grid ───────────────────────────────────────────────────────────────
+// ScoreCard + ComponentChips side by side on tablet+
+
+.report-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+  margin-bottom: $space-4;
+
+  @include md-up {
+    grid-template-columns: 220px 1fr;
+    align-items: start;
+  }
+}
+
+.report-stack {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+// ── UrlForm wrapper ───────────────────────────────────────────────────────────
+
+.url-form-wrapper {
+  max-width: 672px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 $space-4;
+
+  @include md-up { padding: 0; }
+}
+
+.url-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  @include sm-up {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
