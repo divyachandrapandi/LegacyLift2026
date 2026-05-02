@@ -376,3 +376,139 @@
     }
   }
 }
+
+// ── Secondary button ──────────────────────────────────────────────────────────
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-6;
+  border-radius: $radius-full;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: $font-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent-light);
+    background: var(--accent-muted);
+  }
+}
+
+// ── Progressive loading steps ─────────────────────────────────────────────────
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-6;
+  padding: $space-16 $space-4;
+
+  &__spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+  }
+
+  &__track {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+    min-width: 280px;
+  }
+
+  &__step {
+    display: flex;
+    align-items: baseline;
+    gap: $space-3;
+    font-size: $font-sm;
+    color: var(--text-faint);
+    transition: color 0.3s ease;
+
+    &--active {
+      color: var(--text-primary);
+    }
+
+    &--done {
+      color: var(--score-good);
+    }
+  }
+
+  &__dot {
+    font-size: $font-xs;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__detail {
+    font-size: $font-xs;
+    color: var(--text-faint);
+    font-weight: 400;
+  }
+}
+
+// ── Score breakdown ───────────────────────────────────────────────────────────
+
+.score-breakdown {
+  margin-top: $space-5;
+  padding-top: $space-4;
+  border-top: 1px solid var(--border-subtle);
+  text-align: left;
+
+  &__title {
+    font-size: $font-xs;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin-bottom: $space-3;
+    text-align: center;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 88px 1fr 28px;
+    align-items: center;
+    gap: $space-2;
+    margin-bottom: $space-2;
+  }
+
+  &__cat {
+    font-size: $font-xs;
+    font-weight: 600;
+    text-transform: capitalize;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__bar-track {
+    height: 4px;
+    background: var(--bg-elevated);
+    border-radius: $radius-full;
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    border-radius: $radius-full;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &__pts {
+    font-size: $font-xs;
+    color: var(--text-faint);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}

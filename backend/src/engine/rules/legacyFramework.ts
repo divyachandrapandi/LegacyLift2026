@@ -1,7 +1,11 @@
 import { Finding, ParsedPage } from '../../types';
 
+// Versioned: jquery-1.9.1.min.js, bootstrap-3.4.1.min.js
 const LEGACY_JQUERY_RE = /jquery[-.](0|1|2)\.\d+/i;
 const LEGACY_BOOTSTRAP_RE = /bootstrap[-.]([34])\.\d+/i;
+// Unversioned local copies: jquery.min.js, jquery.js (not part of a CDN path like /jquery-ui/)
+const UNVERSIONED_JQUERY_RE = /(?<![/\w-])jquery(?:\.min)?\.js/i;
+const UNVERSIONED_BOOTSTRAP_RE = /(?<![/\w-])bootstrap(?:\.min)?\.(?:js|css)/i;
 
 /**
  * Detects legacy JavaScript library versions that are a maintenance liability.
@@ -27,17 +31,21 @@ export function detectLegacyFramework($: ParsedPage): Finding[] {
 
   $('script[src]').each((_, el) => {
     const src = $(el).attr('src') ?? '';
-    if (
-      (LEGACY_JQUERY_RE.test(src) || LEGACY_BOOTSTRAP_RE.test(src)) &&
-      evidence.length < 3
-    ) {
+    const isLegacy =
+      LEGACY_JQUERY_RE.test(src) ||
+      LEGACY_BOOTSTRAP_RE.test(src) ||
+      UNVERSIONED_JQUERY_RE.test(src) ||
+      UNVERSIONED_BOOTSTRAP_RE.test(src);
+    if (isLegacy && evidence.length < 3) {
       evidence.push(`<script src="${src}">`);
     }
   });
 
   $('link[href]').each((_, el) => {
     const href = $(el).attr('href') ?? '';
-    if (LEGACY_BOOTSTRAP_RE.test(href) && evidence.length < 3) {
+    const isLegacy =
+      LEGACY_BOOTSTRAP_RE.test(href) || UNVERSIONED_BOOTSTRAP_RE.test(href);
+    if (isLegacy && evidence.length < 3) {
       evidence.push(`<link href="${href}">`);
     }
   });

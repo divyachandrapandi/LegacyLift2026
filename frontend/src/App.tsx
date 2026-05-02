@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './styles/main.scss';
 
 import { analyzeUrl } from './lib/api';
@@ -10,21 +10,37 @@ import IssueList from './components/IssueList';
 import ComponentChips from './components/ComponentChips';
 import AiPlanCard from './components/AiPlanCard';
 
+const LOADING_STEPS = [
+  { label: 'Fetching page HTML…',     detail: 'Sending request to target URL' },
+  { label: 'Running rule engine…',    detail: 'Checking layout, security, SEO, and more' },
+  { label: 'Generating AI plan…',     detail: 'Asking the AI to build your modernization blueprint' },
+];
+
 const DEMO_URLS = [
-  'https://zuora.com',
-  'https://www.spacejam.com',
-  'https://www.berkshirehathaway.com',
+  'https://www.spacex.com/',
+  'https://saaspo.com/',
+  'https://www.hubspot.com/',
 ];
 
 export default function App() {
   const [loading, setLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
   const [report, setReport] = useState<AnalyzeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => () => { if (stepTimerRef.current) clearInterval(stepTimerRef.current); }, []);
 
   async function handleAnalyze(url: string) {
     setLoading(true);
+    setLoadingStep(0);
     setError(null);
     setReport(null);
+
+    stepTimerRef.current = setInterval(() => {
+      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+    }, 4000);
+
     try {
       const data = await analyzeUrl(url);
       setReport(data);
@@ -32,7 +48,14 @@ export default function App() {
       setError(typeof err === 'string' ? err : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
+      if (stepTimerRef.current) { clearInterval(stepTimerRef.current); stepTimerRef.current = null; }
     }
+  }
+
+  function handleReset() {
+    setReport(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
@@ -70,13 +93,28 @@ export default function App() {
       {/* ── Main content ──────────────────────────────────────────────────── */}
       <main className="content-container pb-16">
 
-        {/* Loading */}
+        {/* Progressive loading */}
         {loading && (
-          <div className="flex flex-col items-center gap-4 py-16 animate-fade-up">
-            <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }} />
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              Fetching, analyzing, and generating your plan…
-            </p>
+          <div className="loading-steps animate-fade-up">
+            <div className="spinner loading-steps__spinner" />
+            <div className="loading-steps__track">
+              {LOADING_STEPS.map((step, i) => (
+                <div
+                  key={i}
+                  className={`loading-steps__step${i === loadingStep ? ' loading-steps__step--active' : ''}${i < loadingStep ? ' loading-steps__step--done' : ''}`}
+                >
+                  <span className="loading-steps__dot" aria-hidden="true">
+                    {i < loadingStep ? '✓' : i === loadingStep ? '◉' : '○'}
+                  </span>
+                  <span>
+                    <span className="loading-steps__label">{step.label}</span>
+                    {i === loadingStep && (
+                      <span className="loading-steps__detail"> {step.detail}</span>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -105,7 +143,7 @@ export default function App() {
 
             {/* Score + Chips */}
             <div className="report-top">
-              <ScoreCard score={report.score} />
+              <ScoreCard score={report.score} findings={report.findings} />
               <ComponentChips
                 components={report.components}
                 detectedStack={report.detectedStack}
@@ -117,6 +155,13 @@ export default function App() {
 
             {/* AI Plan */}
             <AiPlanCard aiPlan={report.aiPlan} />
+
+            {/* Analyze another */}
+            <div className="text-center pt-4 pb-2">
+              <button onClick={handleReset} className="btn-secondary" type="button">
+                ↩ Analyze another URL
+              </button>
+            </div>
           </div>
         )}
       </main>
